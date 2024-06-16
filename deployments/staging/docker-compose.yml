@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: staging-user
+      POSTGRES_PASSWORD: staging-test
+      POSTGRES_DB: staging-db
+    ports: 
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U staging-user -d staging-db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  app:
+    build: ../../.
+    container_name: kt2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../../.env.staging
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
