@@ -2,6 +2,7 @@
 use dotenv::dotenv;
 
 mod commands;
+mod db;
 mod context;
 mod error;
 
@@ -34,6 +35,13 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Box<dyn std::error::Err
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
+
+    let database_url = var("DATABASE_URL")
+        .or_else(|_| var("DATABASE_URL_PROD"))
+        .expect("Either `DATABASE_URL` or `DATABASE_URL_PROD` must be set");
+    let db = db::Database::new(&database_url).await.expect("Failed to connect to database");
+
     let options = poise::FrameworkOptions {
         commands: vec![
             commands::help(),
@@ -91,16 +99,15 @@ async fn main() {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
                     votes: Mutex::new(HashMap::new()),
+                    db,
                 })
             })
         })
         .options(options)
         .build();
 
-    dotenv().ok();
-
     let token = var("DISCORD_TOKEN")
-        .expect("Missing `DISCORD_TOKEN` env var, see README for more information.");
+        .expect("DISCORD_TOKEN must be set.");
     let intents =
         serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
 
