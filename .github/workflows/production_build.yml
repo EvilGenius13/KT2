@@ -1,7 +1,7 @@
-name: Dev Build
+name: Release Build
 
 on:
-  pull_request:
+  push:
     branches:
       - [ main ]
 
@@ -29,8 +29,8 @@ jobs:
       
     - name: Build and Push Docker Image
       run: |
-        docker build -t evilgenius13/kt2:dev-${{ github.sha }} .
-        docker push evilgenius13/kt2:dev-${{ github.sha }}
+        docker build -t evilgenius13/kt2:prod .
+        docker push evilgenius13/kt2:prod
     
     - name: Notify Discord
       uses: th0th/notify-discord@v0.4.1
