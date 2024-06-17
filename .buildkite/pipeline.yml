@@ -1,0 +1,6 @@
+# Temp pipeline to test buildkite
+- label: ":buildkite: Deploy"
+  # Kubernetes deployment to be replaced here
+    command: "echo 'Add deployment script here'"
+  
+  - wait
