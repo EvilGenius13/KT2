@@ -1,4 +1,5 @@
 use crate::Context;
+use poise::serenity_prelude::{CreateEmbed, Colour};
 
 /// Show help menu
 #[poise::command(prefix_command, track_edits, slash_command)]
@@ -22,8 +23,15 @@ pub async fn help(
 
 #[poise::command(prefix_command, slash_command)]
 pub async fn schedule(ctx: Context<'_>) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let response = "Game nights are every Tuesday and Thursday 7:30PM to 11:30PM EST!";
-    ctx.say(response).await?;
+    let embed = CreateEmbed::default()
+        .title("Game Night Schedule")
+        .description("Game nights are every Tuesday and Thursday 7:30PM to 11:30PM EST!")
+        .colour(Colour::from_rgb(255, 0, 0));
+    
+    let reply = poise::CreateReply::default().embed(embed);
+
+    ctx.send(reply).await?;
+
     Ok(())
 }
 
