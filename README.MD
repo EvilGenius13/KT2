@@ -13,3 +13,7 @@ DATABASE_URL=your_database_url (i.e. postgres://user:password@localhost:5432/dbn
 5. Run the bot using `cargo run`
 Alternatively, if you want to run the app and database in containers, run `docker-compose -f docker-compose-staging.yml up` in `/dev`
 
+### Infrastructure
+CI is handled by Github Actions. PR's are tested and built as dev images.
+
+Merging to main triggers a buildkite pipeline which build the production image and pushes to a kubernetes cluster.
