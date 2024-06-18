@@ -44,28 +44,28 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-build-
       
-    - name: Project Build
-      run: cargo build --release
+      - name: Project Build
+        run: cargo build --release
 
-    - name: Run Tests
-      run: cargo test
+      - name: Run Tests
+        run: cargo test
     
-    - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
       
-    - name: Build and Push Docker Image
-      run: |
-        docker build -t evilgenius13/kt2:prod .
-        docker push evilgenius13/kt2:prod
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t evilgenius13/kt2:prod .
+          docker push evilgenius13/kt2:prod
     
-    - name: Notify Discord
-      uses: th0th/notify-discord@v0.4.1
-      if: ${{ always() }}
-      env:
-        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        GITHUB_JOB_STATUS: ${{ job.status }}
+      - name: Notify Discord
+        uses: th0th/notify-discord@v0.4.1
+        if: ${{ always() }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GITHUB_JOB_STATUS: ${{ job.status }}
     
-    - name: Notify Buildkite
+      - name: Notify Buildkite
         if: success()
         run: |
           curl -X POST \
