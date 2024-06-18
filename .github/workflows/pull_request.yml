@@ -1,40 +1,69 @@
-name: PR Workflow
+name: Dev Build
 
 on:
   pull_request:
     branches:
-      - [ main ]
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    
-    - name: Set up Rust
-      uses: actions/setup-rust@v1
-      with:
-        rust-version: stable
+      - name: Checkout
+        uses: actions/checkout@v2
       
-    - name: Project Build
-      run: cargo build --release
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      
+      - name: Cache Cargo registry
+        uses: actions/cache@v2
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+      
+      - name: Cache Cargo index
+        uses: actions/cache@v2
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-index-
+      
+      - name: Cache Cargo build
+        uses: actions/cache@v2
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-
 
-    - name: Run Tests
-      run: cargo test
-    
-    - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+      - name: Project Build
+        run: cargo build --release
+
+      - name: Run Tests
+        run: cargo test
       
-    - name: Build and Push Docker Image
-      run: |
-        docker build -t evilgenius13/kt2:dev-${{ github.sha }} .
-        docker push evilgenius13/kt2:dev-${{ github.sha }}
+      - name: Log in to Docker Hub
+        env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+        run: echo $DOCKER_HUB_ACCESS_TOKEN | docker login -u $DOCKER_HUB_USERNAME --password-stdin
+      
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t evilgenius13/kt2:dev-${{ github.sha }} .
+          docker push evilgenius13/kt2:dev-${{ github.sha }}
     
-    - name: Notify Discord
-      uses: th0th/notify-discord@v0.4.1
-      if: ${{ always() }}
-      env:
-        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        GITHUB_JOB_STATUS: ${{ job.status }}
+      - name: Notify Discord
+        uses: th0th/notify-discord@v0.4.1
+        if: ${{ always() }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GITHUB_JOB_STATUS: ${{ job.status }}
