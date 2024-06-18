@@ -3,11 +3,6 @@ name: Release Build
 on:
   push:
     branches:
-      - [ main ]
-
-on:
-  pull_request:
-    branches:
       - main
 
 jobs:
@@ -69,3 +64,12 @@ jobs:
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         GITHUB_JOB_STATUS: ${{ job.status }}
+    
+    - name: Notify Buildkite
+        if: success()
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.BUILDKITE_API_TOKEN }}" \
+            -d '{"build": {"message": "Triggering Buildkite pipeline"}}' \
+            https://api.buildkite.com/v2/organizations/timewellspent/pipelines/kt2build/builds
